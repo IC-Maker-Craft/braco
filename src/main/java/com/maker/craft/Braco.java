@@ -10,9 +10,6 @@ public class Braco {
     }
 
 
-
-
-
     public int getId() {
         return id;
     }

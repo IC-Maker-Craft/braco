@@ -24,7 +24,11 @@ public class MakerCraft implements ModInitializer {
 	@Override
 	public void onInitialize() {
 
+
 		comPort = Arduino.Connect();
+
+
+		// isso cria um comando dentro do mine, ex: /braco 18 add 30, esse comando mexe o servo no pino 18, aumentando 30 graus
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
 			dispatcher.register(CommandManager.literal("braco")
@@ -39,6 +43,7 @@ public class MakerCraft implements ModInitializer {
 		});
 
 
+		// fecha a porta serial do servo
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 			Arduino.close();
 		}));
@@ -47,6 +52,7 @@ public class MakerCraft implements ModInitializer {
 
 
 	private int executarBraco(CommandContext<ServerCommandSource> context, boolean adicionar) throws CommandSyntaxException {
+		// assim que executar o comando esse bloco de codigo, pegando os paramtros e usando o medoto de enviar mensagem pro arduino
 		int porta = IntegerArgumentType.getInteger(context, "porta");
 		int valor = IntegerArgumentType.getInteger(context, "valor");
 
@@ -66,6 +72,7 @@ public class MakerCraft implements ModInitializer {
 		String mensagem = "P" + porta + ":" + atual;
 		Arduino.sendSerialMessage(comPort, mensagem);
 
+		// manda no chat
 		context.getSource().getServer().getPlayerManager().broadcast(
 				Text.literal("Servo no pino " + porta + " -> " + atual + " graus"),
 				false
