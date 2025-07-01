@@ -10,12 +10,14 @@ import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class MakerCraft implements ModInitializer {
 
+	private final Map<Integer, Integer> posicoes = new HashMap<>();
 
-	Integer braco1value = 0;
 
 	SerialPort comPort;
 
@@ -26,7 +28,7 @@ public class MakerCraft implements ModInitializer {
 
 		CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
 			dispatcher.register(CommandManager.literal("braco")
-					.then(CommandManager.argument("id", IntegerArgumentType.integer(1))
+					.then(CommandManager.argument("porta", IntegerArgumentType.integer(1))
 							.then(CommandManager.literal("add")
 									.then(CommandManager.argument("valor", IntegerArgumentType.integer(1))
 										.executes(ctx -> executarBraco(ctx, true))))
@@ -42,27 +44,34 @@ public class MakerCraft implements ModInitializer {
 		}));
 	}
 
+
+
 	private int executarBraco(CommandContext<ServerCommandSource> context, boolean adicionar) throws CommandSyntaxException {
-		int id = IntegerArgumentType.getInteger(context, "id");
+		int porta = IntegerArgumentType.getInteger(context, "porta");
 		int valor = IntegerArgumentType.getInteger(context, "valor");
 
+		// valor atual default é 0 se não houver ainda
+		int atual = posicoes.getOrDefault(porta, 0);
 
-		if(adicionar && braco1value < 120){
-			braco1value += valor;
-		}else if(!adicionar && braco1value > 0){
-			braco1value -= valor;
+		// atualiza posição
+		if (adicionar && atual + valor <= 180) {
+			atual += valor;
+		} else if (!adicionar && atual - valor >= 0) {
+			atual -= valor;
 		}
 
+		posicoes.put(porta, atual);
+
+		// envia comando como: P21:90 (P de "porta")
+		String mensagem = "P" + porta + ":" + atual;
+		Arduino.sendSerialMessage(comPort, mensagem);
+
 		context.getSource().getServer().getPlayerManager().broadcast(
-				Text.literal("Braço com ID " + id + ": " + braco1value),
+				Text.literal("Servo no pino " + porta + " -> " + atual + " graus"),
 				false
 		);
 
-		Arduino.sendSerialMessage(comPort, braco1value.toString());
-		
-
-		// Aqui você pode chamar sua lógica: exemplo, ArduinoController.setBraco(id, adicionar)
-
 		return 1;
 	}
+
 }
