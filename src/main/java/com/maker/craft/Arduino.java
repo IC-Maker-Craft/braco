@@ -8,7 +8,8 @@ public class Arduino {
 
     // conecta o ardunio/servo na primeira porta usb
     public static SerialPort Connect() {
-        SerialPort comPort = SerialPort.getCommPorts()[0];
+        SerialPort comPort = SerialPort.getCommPort("COM7");
+        //SerialPort comPort = SerialPort.getCommPorts()[0];
         comPort.setComPortTimeouts(SerialPort.TIMEOUT_WRITE_BLOCKING, 1000, 0);
         if (!comPort.openPort()) {
             throw new IllegalStateException("Erro ao abrir porta serial.");
